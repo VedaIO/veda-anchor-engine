@@ -245,10 +245,10 @@ func (s *Server) dispatch(req Request) Response {
 	case "ReportActiveApp":
 		var params struct {
 			PID     uint32 `json:"pid"`
-			exePath string `json:"exePath"`
+			ExePath string `json:"exePath"`
 		}
 		json.Unmarshal(req.Params, &params)
-		err = s.apiServer.ReportActiveApp(params.PID, params.exePath)
+		err = s.apiServer.ReportActiveApp(params.PID, params.ExePath)
 
 	default:
 		return Response{ID: req.ID, Error: "Unknown method: " + req.Method}
