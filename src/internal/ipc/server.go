@@ -4,12 +4,8 @@ package ipc
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net"
-	"os"
-	"path/filepath"
-	"time"
 
 	"veda-anchor-engine/src/api"
 
@@ -227,11 +223,6 @@ func (s *Server) dispatch(req Request) Response {
 		json.Unmarshal(req.Params, &params)
 		err = s.apiServer.ClearWebHistory(params.Password)
 
-	// --- Local Checks ---
-
-	case "CheckChromeExtension":
-		result = checkChromeExtension()
-
 	// --- Agent Communication ---
 
 	case "UpdateScreenTime":
@@ -259,21 +250,4 @@ func (s *Server) dispatch(req Request) Response {
 	}
 
 	return Response{ID: req.ID, Result: result}
-}
-
-func checkChromeExtension() bool {
-	cacheDir, err := os.UserCacheDir()
-	if err != nil {
-		return false
-	}
-	heartbeatPath := filepath.Join(cacheDir, "VedaAnchor", "extension_heartbeat")
-	content, err := os.ReadFile(heartbeatPath)
-	if err != nil {
-		return false
-	}
-	var lastPing int64
-	if _, err := fmt.Sscanf(string(content), "%d", &lastPing); err != nil {
-		return false
-	}
-	return time.Since(time.Unix(lastPing, 0)) < 10*time.Second
 }
