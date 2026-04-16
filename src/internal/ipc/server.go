@@ -23,7 +23,9 @@ func NewServer(apiServer *api.Server) *Server {
 func (s *Server) Start() error {
 	address := GetIPCAddress()
 
-	config := &winio.PipeConfig{}
+	config := &winio.PipeConfig{
+		SecurityDescriptor: "D:(A;;GA;;;SY)(A;;GA;;;BA)(A;;GA;;;AU)",
+	}
 	listener, err := winio.ListenPipe(address, config)
 	if err != nil {
 		return err

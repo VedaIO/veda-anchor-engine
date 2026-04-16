@@ -7,7 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
+	"unsafe"
 
 	"veda-anchor-engine/src/internal/platform/proc_sensing"
 
@@ -95,12 +97,24 @@ func createProcessAsUser(token windows.Token, exePath string) (uint32, error) {
 		return 0, err
 	}
 
+	// Build user environment block
+	envBlock, err := createEnvironmentBlock(token)
+	if err != nil {
+		log.Printf("[AgentLauncher] Warning: CreateEnvironmentBlock failed: %v, using inherited env", err)
+		// Fall through with nil envBlock
+	}
+	if envBlock != nil {
+		defer destroyEnvironmentBlock(envBlock)
+	}
+
 	si := windows.StartupInfo{
 		Desktop:    windows.StringToUTF16Ptr("Winsta0\\default"),
 		Flags:      windows.STARTF_USESHOWWINDOW,
 		ShowWindow: windows.SW_HIDE,
 	}
 	var pi windows.ProcessInformation
+
+	creationFlags := uint32(windows.CREATE_UNICODE_ENVIRONMENT)
 
 	err = windows.CreateProcessAsUser(
 		token,
@@ -109,8 +123,8 @@ func createProcessAsUser(token windows.Token, exePath string) (uint32, error) {
 		nil,
 		nil,
 		false,
-		0,
-		nil,
+		creationFlags,
+		envBlock,
 		nil,
 		&si,
 		&pi,
@@ -123,6 +137,29 @@ func createProcessAsUser(token windows.Token, exePath string) (uint32, error) {
 	windows.CloseHandle(pi.Process)
 	windows.CloseHandle(pi.Thread)
 	return pid, nil
+}
+
+var (
+	modUserenv                  = syscall.NewLazyDLL("userenv.dll")
+	procCreateEnvironmentBlock  = modUserenv.NewProc("CreateEnvironmentBlock")
+	procDestroyEnvironmentBlock = modUserenv.NewProc("DestroyEnvironmentBlock")
+)
+
+func createEnvironmentBlock(token windows.Token) (*uint16, error) {
+	var envBlock *uint16
+	ret, _, err := procCreateEnvironmentBlock.Call(
+		uintptr(unsafe.Pointer(&envBlock)),
+		uintptr(token),
+		0, // don't inherit parent env
+	)
+	if ret == 0 {
+		return nil, err
+	}
+	return envBlock, nil
+}
+
+func destroyEnvironmentBlock(envBlock *uint16) {
+	procDestroyEnvironmentBlock.Call(uintptr(unsafe.Pointer(envBlock)))
 }
 
 func SuperviseAgent(stopCh <-chan struct{}) {
