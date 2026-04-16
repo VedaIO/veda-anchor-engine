@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"veda-anchor-engine/src/internal/config"
-	"veda-anchor-engine/src/internal/platform/blocklistlock"
 )
 
 // LoadAppBlocklist reads the blocklist file from the user's cache directory.
@@ -58,10 +57,5 @@ func SaveAppBlocklist(list []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal blocklist: %w", err)
 	}
-	if err := os.WriteFile(p, b, 0600); err != nil {
-		return err
-	}
-
-	// Apply platform-specific file locking to prevent unauthorized modification.
-	return blocklistlock.PlatformLock(p) // build-tag dispatch
+	return os.WriteFile(p, b, 0644) // readable by all, writable by SYSTEM
 }

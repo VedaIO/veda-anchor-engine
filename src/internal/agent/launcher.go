@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 	"unsafe"
@@ -19,6 +20,35 @@ import (
 const (
 	INVALID_SESSION_ID = ^uint32(0)
 )
+
+var (
+	agentPID   uint32
+	agentPIDMu sync.Mutex
+)
+
+func GetAgentPID() uint32 {
+	agentPIDMu.Lock()
+	defer agentPIDMu.Unlock()
+	return agentPID
+}
+
+func setAgentPID(pid uint32) {
+	agentPIDMu.Lock()
+	agentPID = pid
+	agentPIDMu.Unlock()
+}
+
+func KillAgent() {
+	pid := GetAgentPID()
+	if pid == 0 {
+		return
+	}
+	log.Printf("[AgentLauncher] Killing agent (PID: %d)", pid)
+	if proc, err := os.FindProcess(int(pid)); err == nil {
+		_ = proc.Kill()
+	}
+	setAgentPID(0)
+}
 
 func LaunchAgent() (uint32, error) {
 	agentPath := filepath.Join(os.Getenv("ProgramFiles"), "VedaAnchor", "veda-anchor-agent.exe")
@@ -55,6 +85,7 @@ func LaunchAgent() (uint32, error) {
 		return 0, err
 	}
 
+	setAgentPID(pid)
 	log.Printf("[AgentLauncher] Agent launched successfully (PID: %d)", pid)
 	return pid, nil
 }
@@ -182,7 +213,9 @@ func SuperviseAgent(stopCh <-chan struct{}) {
 		case <-ticker.C:
 			if !isAgentRunning() {
 				log.Printf("[AgentSupervisor] Agent not running, restarting...")
-				if _, err := LaunchAgent(); err != nil {
+				if pid, err := LaunchAgent(); err == nil {
+					setAgentPID(pid)
+				} else {
 					log.Printf("[AgentSupervisor] Failed to restart agent: %v", err)
 				}
 			}

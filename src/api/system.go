@@ -15,6 +15,7 @@ import (
 	"veda-anchor-engine/src/internal/platform/proc_sensing"
 	"veda-anchor-engine/src/internal/platform/uninstall"
 	"veda-anchor-engine/src/internal/web/native_messaging"
+	"veda-anchor-engine/src/internal/agent"
 )
 
 const appName = "Veda"
@@ -26,6 +27,9 @@ func (s *Server) Shutdown() {
 	native_messaging.Stop()
 
 	go func() {
+		// Kill agent first
+		agent.KillAgent()
+
 		time.Sleep(1 * time.Second)
 		s.Logger.Close()
 		if err := s.db.Close(); err != nil {
@@ -45,6 +49,9 @@ func (s *Server) Uninstall(password string) error {
 	}
 
 	go func() {
+		// Kill agent first
+		agent.KillAgent()
+
 		s.Logger.Close()
 		if err := s.db.Close(); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to close database: %v\n", err)
