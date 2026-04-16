@@ -66,6 +66,8 @@ func (s *Server) dispatch(req Request) Response {
 	var err error
 
 	switch req.Method {
+	case "Ping":
+		result = true
 
 	// --- Stats ---
 

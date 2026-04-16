@@ -74,7 +74,8 @@ func (s *vedaAnchorService) Execute(args []string, r <-chan svc.ChangeRequest, c
 	}()
 
 	// Launch Agent in user session
-	go agent.StartAgentWithRetry()
+	agentStopCh := make(chan struct{})
+	go agent.SuperviseAgent(agentStopCh)
 
 	// Service is now running
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
@@ -88,6 +89,7 @@ func (s *vedaAnchorService) Execute(args []string, r <-chan svc.ChangeRequest, c
 			log.Printf("=== %s ENGINE SERVICE STOPPING ===", config.AppName)
 			changes <- svc.Status{State: svc.StopPending}
 			// Cleanup
+			close(agentStopCh)
 			l.Close()
 			_ = db.Close()
 			return false, 0
