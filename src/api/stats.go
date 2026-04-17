@@ -121,8 +121,8 @@ func (s *Server) GetWebLogs(queryStr, since, until string) ([][]string, error) {
 	return s.Web.GetLogs(queryStr, since, until)
 }
 
-func (s *Server) LogWebEvent(urlStr string) error {
-	s.Web.LogWebEvent(urlStr)
+func (s *Server) LogWebEvent(url, title string, visitTime int64) error {
+	s.Web.LogVisit(url, title, visitTime)
 	return nil
 }
 

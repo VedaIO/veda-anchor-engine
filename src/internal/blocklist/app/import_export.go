@@ -15,7 +15,7 @@ func ExportAppBlocklist(path string) error {
 		return err
 	}
 
-	header := map[string]interface{}{
+	header := map[string]any{
 		"exported_at": time.Now().Format(time.RFC3339),
 		"blocked":     list,
 	}

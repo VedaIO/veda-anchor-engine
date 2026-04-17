@@ -20,18 +20,18 @@ type multiLogger struct {
 }
 
 // Printf formats and logs a message with the INFO level.
-func (l *multiLogger) Printf(format string, v ...interface{}) {
+func (l *multiLogger) Printf(format string, v ...any) {
 	l.write("INFO", fmt.Sprintf(format, v...))
 }
 
 // Fatalf formats and logs a message with the FATAL level, then exits the application.
-func (l *multiLogger) Fatalf(format string, v ...interface{}) {
+func (l *multiLogger) Fatalf(format string, v ...any) {
 	l.write("FATAL", fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
 // Println logs a message with the INFO level.
-func (l *multiLogger) Println(v ...interface{}) {
+func (l *multiLogger) Println(v ...any) {
 	l.write("INFO", fmt.Sprintln(v...))
 }
 

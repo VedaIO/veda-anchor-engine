@@ -14,9 +14,9 @@ type Request struct {
 
 // Response is a message sent to the client.
 type Response struct {
-	ID     string      `json:"id"`
-	Result interface{} `json:"result,omitempty"`
-	Error  string      `json:"error,omitempty"`
+	ID     string `json:"id"`
+	Result any    `json:"result,omitempty"`
+	Error  string `json:"error,omitempty"`
 }
 
 // GetIPCAddress returns the Windows Named Pipe address.

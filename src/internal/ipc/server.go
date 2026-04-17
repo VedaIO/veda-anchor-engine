@@ -64,7 +64,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 }
 
 func (s *Server) dispatch(req Request) Response {
-	var result interface{}
+	var result any
 	var err error
 
 	switch req.Method {
@@ -246,9 +246,13 @@ func (s *Server) dispatch(req Request) Response {
 		err = s.apiServer.ReportActiveApp(params.PID, params.ExePath)
 
 	case "LogWebEvent":
-		var urlStr string
-		json.Unmarshal(req.Params, &urlStr)
-		err = s.apiServer.LogWebEvent(urlStr)
+		var params struct {
+			URL       string `json:"url"`
+			Title     string `json:"title"`
+			VisitTime int64  `json:"visitTime"`
+		}
+		json.Unmarshal(req.Params, &params)
+		err = s.apiServer.LogWebEvent(params.URL, params.Title, params.VisitTime)
 
 	case "SaveWebMetadata":
 		var params struct {

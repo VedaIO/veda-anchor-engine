@@ -238,7 +238,7 @@ func isAgentRunning() bool {
 
 func waitForIPCReady() {
 	pipePath := `\\.\pipe\veda-anchor`
-	for i := 0; i < 30; i++ { // Wait up to 30 seconds
+	for range 30 { // Wait up to 30 seconds
 		_, err := os.Stat(pipePath)
 		if err == nil {
 			log.Printf("[AgentSupervisor] IPC pipe ready")

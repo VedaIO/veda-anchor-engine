@@ -28,7 +28,7 @@ func NewAppRepository(db *sql.DB) *AppRepository {
 // GetUsageRanking returns the most used applications in a time range.
 func (r *AppRepository) GetUsageRanking(sinceTime, untilTime time.Time) ([]AppUsageItem, error) {
 	q := "SELECT process_name, COUNT(*) as count FROM app_events WHERE 1=1"
-	args := []interface{}{}
+	args := []any{}
 
 	if !sinceTime.IsZero() {
 		q += " AND start_time >= ?"
@@ -122,7 +122,7 @@ func (r *AppRepository) SearchEvents(queryStr, since, until string) ([][]string,
 
 	// Build the SQL query dynamically based on the provided filters.
 	q := "SELECT process_name, pid, parent_process_name, exe_path, start_time, end_time FROM app_events WHERE 1=1"
-	args := make([]interface{}, 0)
+	args := make([]any, 0)
 
 	if queryStr != "" {
 		q += " AND (process_name LIKE ? OR parent_process_name LIKE ?)"

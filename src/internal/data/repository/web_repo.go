@@ -48,7 +48,7 @@ func (r *WebRepository) GetUsageRanking(sinceTime, untilTime time.Time) ([]WebUs
 		FROM web_events
 		WHERE 1=1
 	`
-	args := []interface{}{}
+	args := []any{}
 
 	if !sinceTime.IsZero() {
 		q += " AND timestamp >= ?"
@@ -98,9 +98,9 @@ func (r *WebRepository) GetLogs(queryStr, since, until string) ([][]string, erro
 	}
 
 	// Build the SQL query dynamically based on the provided time filters.
-	// Returns: timestamp, domain, url
-	q := "SELECT timestamp, domain, url FROM web_events WHERE 1=1"
-	args := make([]interface{}, 0)
+	// Returns: timestamp, domain, url, title
+	q := "SELECT timestamp, domain, url, title FROM web_events WHERE 1=1"
+	args := make([]any, 0)
 
 	if queryStr != "" {
 		q += " AND domain LIKE ?"
@@ -130,11 +130,12 @@ func (r *WebRepository) GetLogs(queryStr, since, until string) ([][]string, erro
 		var timestamp int64
 		var domain string
 		var url string
-		if err := rows.Scan(&timestamp, &domain, &url); err != nil {
+		var title sql.NullString
+		if err := rows.Scan(&timestamp, &domain, &url, &title); err != nil {
 			continue
 		}
 		timestampStr := time.Unix(timestamp, 0).Format("2006-01-02 15:04:05")
-		entries = append(entries, []string{timestampStr, domain, url})
+		entries = append(entries, []string{timestampStr, domain, url, title.String})
 	}
 
 	return entries, nil
@@ -193,6 +194,16 @@ func (r *WebRepository) SaveMetadata(domain, title, iconURL string) error {
 // LogWebEvent records a visit to a URL.
 func (r *WebRepository) LogWebEvent(urlStr string) {
 	domain := ExtractDomain(urlStr)
-	write.EnqueueWrite("INSERT INTO web_events (url, domain, timestamp) VALUES (?, ?, ?)",
-		urlStr, domain, time.Now().Unix())
+	write.EnqueueWrite("INSERT INTO web_events (url, domain, title, timestamp) VALUES (?, ?, ?, ?)",
+		urlStr, domain, "", time.Now().Unix())
+}
+
+// LogVisit records a visit with title and specific timestamp.
+func (r *WebRepository) LogVisit(urlStr, title string, timestamp int64) {
+	domain := ExtractDomain(urlStr)
+	if timestamp == 0 {
+		timestamp = time.Now().Unix()
+	}
+	write.EnqueueWrite("INSERT INTO web_events (url, domain, title, timestamp) VALUES (?, ?, ?, ?)",
+		urlStr, domain, title, timestamp)
 }

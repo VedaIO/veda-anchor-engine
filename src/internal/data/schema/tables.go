@@ -23,6 +23,7 @@ const AppSchema = `
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		url TEXT NOT NULL,
 		domain TEXT NOT NULL,
+		title TEXT,
 		timestamp INTEGER NOT NULL
 	);
 

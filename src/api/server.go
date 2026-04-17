@@ -5,7 +5,6 @@ import (
 	"sync"
 	"veda-anchor-engine/src/internal/data/logger"
 	"veda-anchor-engine/src/internal/data/repository"
-	"veda-anchor-engine/src/internal/platform/nativehost"
 )
 
 // Server holds the dependencies for the API server, such as the database connection and the logger.
@@ -41,9 +40,4 @@ func (s *Server) GetWebDetails(domain string) (repository.WebMetadata, error) {
 	}
 
 	return *meta, nil
-}
-
-// RegisterExtension handles the registration of the browser extension.
-func (s *Server) RegisterExtension(id string) error {
-	return nativehost.RegisterExtension(id)
 }

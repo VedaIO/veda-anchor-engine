@@ -70,7 +70,7 @@ func (s *Server) SaveAppBlocklist() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	header := map[string]interface{}{
+	header := map[string]any{
 		"exported_at": time.Now().Format(time.RFC3339),
 		"blocked":     list,
 	}
@@ -143,7 +143,7 @@ func (s *Server) SaveWebBlocklist() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	header := map[string]interface{}{
+	header := map[string]any{
 		"exported_at": time.Now().Format(time.RFC3339),
 		"blocked":     list,
 	}

@@ -12,10 +12,8 @@ import (
 	"veda-anchor-engine/src/internal/data/history"
 	"veda-anchor-engine/src/internal/monitoring"
 	"veda-anchor-engine/src/internal/platform/autostart"
-	"veda-anchor-engine/src/internal/platform/nativehost"
 	"veda-anchor-engine/src/internal/platform/proc_sensing"
 	"veda-anchor-engine/src/internal/platform/uninstall"
-	"veda-anchor-engine/src/internal/web/native_messaging"
 )
 
 const appName = "Veda"
@@ -24,7 +22,6 @@ const appName = "Veda"
 
 func (s *Server) Shutdown() {
 	s.Logger.Println("Received stop request. Shutting down...")
-	native_messaging.Stop()
 
 	go func() {
 		// Kill agent first
@@ -65,7 +62,6 @@ func (s *Server) Uninstall(password string) error {
 
 		// Stop and delete the Windows Service
 		_ = autostart.StopAndDeleteService()
-		_ = nativehost.Remove()
 
 		if err := uninstall.SelfDestruct(appName); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to initiate self-deletion: %v\n", err)
@@ -145,8 +141,8 @@ func (s *Server) unblockAll() error {
 	}
 
 	for _, name := range list {
-		if strings.HasSuffix(name, ".blocked") {
-			newName := strings.TrimSuffix(name, ".blocked")
+		if before, ok := strings.CutSuffix(name, ".blocked"); ok {
+			newName := before
 			_ = os.Rename(name, newName)
 		}
 	}
