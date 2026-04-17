@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"veda-anchor-engine/src/internal/agent"
 	"veda-anchor-engine/src/internal/auth"
 	app_blocklist "veda-anchor-engine/src/internal/blocklist/app"
 	"veda-anchor-engine/src/internal/config"
@@ -15,7 +16,6 @@ import (
 	"veda-anchor-engine/src/internal/platform/proc_sensing"
 	"veda-anchor-engine/src/internal/platform/uninstall"
 	"veda-anchor-engine/src/internal/web/native_messaging"
-	"veda-anchor-engine/src/internal/agent"
 )
 
 const appName = "Veda"
@@ -130,7 +130,7 @@ func (s *Server) killOtherVedaProcesses() {
 		if int(p.PID) == currentPid {
 			continue
 		}
-		if strings.HasPrefix(strings.ToLower(p.Name), "Veda") {
+		if strings.HasPrefix(strings.ToLower(p.Name), "veda") {
 			if osProc, err := os.FindProcess(int(p.PID)); err == nil {
 				_ = osProc.Kill()
 			}

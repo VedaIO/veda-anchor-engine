@@ -13,7 +13,6 @@ import (
 	"veda-anchor-engine/src/internal/data/logger"
 	"veda-anchor-engine/src/internal/ipc"
 	"veda-anchor-engine/src/internal/monitoring"
-	"veda-anchor-engine/src/internal/platform/nativehost"
 
 	"golang.org/x/sys/windows/svc"
 )
@@ -55,14 +54,6 @@ func (s *vedaAnchorService) Execute(args []string, r <-chan svc.ChangeRequest, c
 
 	// Start monitoring (screentime now handled by Agent)
 	monitoring.StartDefault(l, server.Apps, nil)
-
-	// Register Chrome extensions
-	if err := nativehost.RegisterExtension("hkanepohpflociaodcicmmfbdaohpceo"); err != nil {
-		log.Printf("Failed to register Store extension: %v", err)
-	}
-	if err := nativehost.RegisterExtension("gpaafgcbiejjpfdgmjglehboafdicdjb"); err != nil {
-		log.Printf("Failed to register Dev extension: %v", err)
-	}
 
 	// Start IPC Server in background
 	ipcServer := ipc.NewServer(server)

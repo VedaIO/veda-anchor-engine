@@ -6,7 +6,6 @@ import (
 	"veda-anchor-engine/src/internal/data/logger"
 	"veda-anchor-engine/src/internal/data/repository"
 	"veda-anchor-engine/src/internal/platform/nativehost"
-	"veda-anchor-engine/src/internal/service/icon"
 )
 
 // Server holds the dependencies for the API server, such as the database connection and the logger.
@@ -15,7 +14,6 @@ type Server struct {
 	IsAuthenticated bool
 	Mu              sync.Mutex
 	db              *sql.DB
-	icons           *icon.Service
 	Apps            *repository.AppRepository
 	Web             *repository.WebRepository
 }
@@ -26,25 +24,9 @@ func NewServer(db *sql.DB) *Server {
 	return &Server{
 		Logger: l,
 		db:     db,
-		icons:  icon.NewService(l),
 		Apps:   repository.NewAppRepository(db),
 		Web:    repository.NewWebRepository(db),
 	}
-}
-
-// AppDetailsResponse is the response for GetAppDetails.
-type AppDetailsResponse struct {
-	CommercialName string `json:"commercialName"`
-	Icon           string `json:"icon"`
-}
-
-// GetAppDetails retrieves details for a given application, such as its commercial name and icon.
-func (s *Server) GetAppDetails(exePath string) (AppDetailsResponse, error) {
-	details := s.icons.GetAppDetails(exePath)
-	return AppDetailsResponse{
-		CommercialName: details.CommercialName,
-		Icon:           details.IconBase64,
-	}, nil
 }
 
 // GetWebDetails retrieves metadata for a given domain.

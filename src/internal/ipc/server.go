@@ -245,6 +245,20 @@ func (s *Server) dispatch(req Request) Response {
 		json.Unmarshal(req.Params, &params)
 		err = s.apiServer.ReportActiveApp(params.PID, params.ExePath)
 
+	case "LogWebEvent":
+		var urlStr string
+		json.Unmarshal(req.Params, &urlStr)
+		err = s.apiServer.LogWebEvent(urlStr)
+
+	case "SaveWebMetadata":
+		var params struct {
+			Domain  string `json:"domain"`
+			Title   string `json:"title"`
+			IconURL string `json:"iconURL"`
+		}
+		json.Unmarshal(req.Params, &params)
+		err = s.apiServer.SaveWebMetadata(params.Domain, params.Title, params.IconURL)
+
 	default:
 		return Response{ID: req.ID, Error: "Unknown method: " + req.Method}
 	}

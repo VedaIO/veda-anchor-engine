@@ -9,11 +9,12 @@ import (
 // --- Types ---
 
 type AppLeaderboardItem struct {
-	Rank        int    `json:"rank"`
-	Name        string `json:"name"`        // Display name (commercial name if available)
-	ProcessName string `json:"processName"` // Actual process name for blocking
-	Icon        string `json:"icon"`
-	Count       int    `json:"count"`
+	Rank           int    `json:"rank"`
+	Name           string `json:"name"`        // Display name (commercial name if available)
+	ProcessName    string `json:"processName"` // Actual process name for blocking
+	ExecutablePath string `json:"executablePath"`
+	Icon           string `json:"icon"`
+	Count          int    `json:"count"`
 }
 
 type WebLeaderboardItem struct {
@@ -44,18 +45,13 @@ func (s *Server) GetAppLeaderboard(since, until string) ([]AppLeaderboardItem, e
 
 	leaderboard := make([]AppLeaderboardItem, 0, len(records))
 	for i, r := range records {
-		details := s.icons.GetAppDetails(r.ExecutablePath)
-		displayName := details.CommercialName
-		if displayName == "" {
-			displayName = r.ProcessName
-		}
-
 		leaderboard = append(leaderboard, AppLeaderboardItem{
-			Rank:        i + 1,
-			Name:        displayName,
-			ProcessName: r.ProcessName,
-			Icon:        details.IconBase64,
-			Count:       r.Count,
+			Rank:           i + 1,
+			Name:           r.ProcessName, // Will be enriched by agent
+			ProcessName:    r.ProcessName,
+			ExecutablePath: r.ExecutablePath,
+			Icon:           "", // Will be enriched by agent
+			Count:          r.Count,
 		})
 	}
 	return leaderboard, nil
@@ -72,16 +68,10 @@ func (s *Server) GetScreenTime() ([]ScreenTimeItem, error) {
 
 	items := make([]ScreenTimeItem, 0, len(records))
 	for _, r := range records {
-		details := s.icons.GetAppDetails(r.ExecutablePath)
-		name := details.CommercialName
-		if name == "" {
-			name = extractFileName(r.ExecutablePath)
-		}
-
 		items = append(items, ScreenTimeItem{
-			Name:            name,
+			Name:            extractFileName(r.ExecutablePath), // Will be enriched by agent
 			ExecutablePath:  r.ExecutablePath,
-			Icon:            details.IconBase64,
+			Icon:            "", // Will be enriched by agent
 			DurationSeconds: r.DurationSeconds,
 		})
 	}
@@ -129,6 +119,15 @@ func (s *Server) Search(queryStr, since, until string) ([][]string, error) {
 
 func (s *Server) GetWebLogs(queryStr, since, until string) ([][]string, error) {
 	return s.Web.GetLogs(queryStr, since, until)
+}
+
+func (s *Server) LogWebEvent(urlStr string) error {
+	s.Web.LogWebEvent(urlStr)
+	return nil
+}
+
+func (s *Server) SaveWebMetadata(domain, title, iconURL string) error {
+	return s.Web.SaveMetadata(domain, title, iconURL)
 }
 
 // --- Utils ---

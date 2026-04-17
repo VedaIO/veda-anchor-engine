@@ -58,5 +58,5 @@ func SaveWebBlocklist(list []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal web blocklist: %w", err)
 	}
-	return os.WriteFile(p, b, 0600)
+	return os.WriteFile(p, b, 0644)
 }
